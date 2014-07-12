@@ -20,7 +20,7 @@ def main():
     for idx, img_tag in enumerate(imgs[:2]):
         img_url = "http://donut.caltech.edu/directory/" + img_tag['src']
         img = urllib2.urlopen(img_url)
-        fd = open("imgs/%03d.jpg" % idx, 'w')
+        fd = open("prefrosh_images/%03d.jpg" % idx, 'w')
         fd.write(img.read())
         nums_to_pics_map.write(img_tag.parent.contents[3] +  ", " + "%03d\n" % idx)
         
@@ -30,7 +30,7 @@ def imgs_with_show(tag):
 
 if __name__ == "__main__":
     try:
-        os.mkdir("imgs")
+        os.mkdir("prefrosh_images")
     except OSError:
         pass
     main()
