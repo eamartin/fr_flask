@@ -1,3 +1,5 @@
+import os, os.path
+
 from flask import Flask, render_template, redirect, request, session, url_for
 from flask.ext.sqlalchemy import SQLAlchemy
 
@@ -14,7 +16,11 @@ HOUSES = ['Avery', 'Blacker', 'Dabney', 'Fleming', 'Lloyd', 'Page', 'Ricketts',
 
 HOUSES_ENUM = db.Enum(*(HOUSES + ['Unknown']))
 
-IMG_FORMAT = 'prefrosh_images/%s.jpg'
+IMG_DIR = 'prefrosh_images'
+
+IMG_FORMAT = IMG_DIR + '/%s.jpg'
+
+NUM_PREFROSH = len([name for name in os.listdir(os.path.join('static', IMG_DIR)) if os.path.isfile(name)])
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -33,8 +39,8 @@ class Prefrosh(db.Model):
 
 class Prediction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    prefrosh_id = db.Column(db.Integer, db.ForeignKey(Prefrosh.id))
+    user_id = db.Column(db.Integer)
+    prefrosh_id = db.Column(db.Integer)
     prediction = db.Column(HOUSES_ENUM, default=UNKNOWN)
 
     def __init__(self, user_id, prefrosh_id, prediction):
@@ -67,16 +73,19 @@ def prefrosh_predict(prefrosh_id):
                                photo_url=url_for('static',
                                                  filename=IMG_FORMAT % prefrosh_id))
     else:
-        prior_prediction = Prediction.filter.query_by(user_id=session["user_id"],
+        prior_prediction = Prediction.query.filter_by(user_id=session["user_id"],
                                                       prefrosh_id=prefrosh_id).first()
-        if prior_prediction is not None:
-            abort(500)
-        pred = Prediction(session["user_id"], prefrosh_id, request["prediction"])
         user = User.query.filter_by(id=session["user_id"]).first()
+        if prior_prediction is not None or prefrosh_id != user.progress:
+            return redirect(url_for("prefrosh_predict", prefrosh_id=user.progress))
+
+        pred = Prediction(session["user_id"], prefrosh_id, request.form["prediction"])
         user.progress += 1
         db.session.add(pred)
         db.session.add(user)
         db.session.commit()
+        if user.progress == NUM_PREFROSH:
+            return "You're done"
         return redirect(url_for("prefrosh_predict", prefrosh_id=user.progress))
 
 if __name__ == '__main__':
