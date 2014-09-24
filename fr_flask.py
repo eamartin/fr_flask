@@ -84,7 +84,7 @@ def prefrosh_predict(prefrosh_id):
         db.session.add(pred)
         db.session.add(user)
         db.session.commit()
-        if user.progress == NUM_PREFROSH:
+        if user.progress >= NUM_PREFROSH:
             return "You're done"
         return redirect(url_for("prefrosh_predict", prefrosh_id=user.progress))
 

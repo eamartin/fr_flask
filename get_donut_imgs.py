@@ -17,7 +17,7 @@ def main():
     page = BeautifulSoup(urllib2.urlopen(url))
     imgs = page.findAll(imgs_with_show)
 
-    for idx, img_tag in enumerate(imgs[:2]):
+    for idx, img_tag in enumerate(imgs):
         img_url = "http://donut.caltech.edu/directory/" + img_tag['src']
         img = urllib2.urlopen(img_url)
         fd = open("prefrosh_images/%d.jpg" % idx, 'w')
